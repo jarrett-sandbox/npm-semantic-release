@@ -1,6 +1,6 @@
 {
   "name": "@jarrett-sandbox/npm-semantic-release",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A test NPM package for semantic release with Octo-STS",
   "main": "index.js",
   "scripts": {
