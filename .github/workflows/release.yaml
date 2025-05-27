@@ -1,0 +1,59 @@
+name: Release NPM Package
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  release:
+    # Only run on main if pushed by octo-sts[bot] (i.e., after a release commit)
+    # or if manually dispatched
+    if: (github.ref == 'refs/heads/main' && github.actor == 'octo-sts[bot]') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # To push new version, tags, and CHANGELOG.md
+      id-token: write # To use Octo-STS
+      issues: write # For semantic-release to comment on issues/PRs
+      pull-requests: write # For semantic-release to comment on issues/PRs
+
+    steps:
+      - name: Generate Token with Octo-STS
+        id: octo-sts
+        uses: octo-sts/action@210248e8ae1ae1550aa6e232c6f192b3ccbf7335
+        with:
+          scope: "jarrett-sandbox/npm-semantic-release" # Org/Repo
+          identity: semantic-release # The identity configured in Octo-STS
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.octo-sts.outputs.token }}
+          fetch-depth: 0 # Required for semantic-release to analyze all commits
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred LTS version
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get GitHub App User ID for octo-sts[bot]
+        id: get-user-id
+        run: echo "user_id=$(gh api "/users/octo-sts[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.octo-sts.outputs.token }}
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "octo-sts[bot]"
+          git config --global user.email "${{ steps.get-user-id.outputs.user_id }}+octo-sts[bot]@users.noreply.github.com"
+
+      - name: Run semantic-release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # Needs to be configured in repo secrets
