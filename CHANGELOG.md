@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/jarrett-sandbox/npm-semantic-release/compare/v1.0.0...v1.1.0) (2025-05-27)
+
+
+### Features
+
+* dummy commit ([a2b5cd5](https://github.com/jarrett-sandbox/npm-semantic-release/commit/a2b5cd569ed70a9f9c9504e16158ffdae1630b49))
+
 # 1.0.0 (2025-05-27)
 
 
